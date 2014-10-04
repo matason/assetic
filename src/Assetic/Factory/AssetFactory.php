@@ -186,6 +186,8 @@ class AssetFactory
             $options['name'] = $this->generateAssetName($inputs, $filters, $options);
         }
 
+        $optionsCopy = $options;
+
         $asset = $this->createAssetCollection(array(), $options);
         $extensions = array();
 
@@ -195,7 +197,10 @@ class AssetFactory
                 // nested formula
                 $asset->add(call_user_func_array(array($this, 'createAsset'), $input));
             } else {
-                $asset->add($this->parseInput($input, $options));
+                foreach ($options['root'] as $root) {
+                    $optionsCopy['root'] = $root;
+                    $asset->add($this->parseInput($input, $optionsCopy));
+                }
                 $extensions[pathinfo($input, PATHINFO_EXTENSION)] = true;
             }
         }
@@ -317,9 +322,9 @@ class AssetFactory
                 $path = null;
             }
         } else {
-            $root  = $this->root;
+            $root  = $options['root'];
             $path  = $input;
-            $input = $this->root.'/'.$path;
+            $input = $root.'/'.$path;
         }
 
         if (false !== strpos($input, '*')) {
